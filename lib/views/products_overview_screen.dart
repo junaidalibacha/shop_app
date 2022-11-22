@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shop_app/providers/product_provider.dart';
 import 'package:shop_app/views/cart_screen.dart';
 import 'package:shop_app/widgets/badge_widget.dart';
 import 'package:shop_app/widgets/drawer_widget.dart';
@@ -18,6 +19,34 @@ class ProductOverViewScreen extends StatefulWidget {
 
 class _ProductOverViewScreenState extends State<ProductOverViewScreen> {
   bool _showFavOnly = false;
+  var _isInit = true;
+  var _isLoading = false;
+
+  // @override
+  // void initState() {
+  //   // Provider.of<ProductProvider>(context, listen: false).fetchAndSetProducts();
+  //   Future.delayed(Duration.zero).then(
+  //     (value) => Provider.of<ProductProvider>(context).fetchAndSetProducts(),
+  //   );
+  //   super.initState();
+  // }
+  @override
+  void didChangeDependencies() {
+    if (_isInit) {
+      setState(() {
+        _isLoading = true;
+      });
+      Provider.of<ProductProvider>(context).fetchAndSetProducts().then(
+        (_) {
+          setState(() {
+            _isLoading = false;
+          });
+        },
+      );
+    }
+    _isInit = false;
+    super.didChangeDependencies();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,6 +57,7 @@ class _ProductOverViewScreenState extends State<ProductOverViewScreen> {
         title: const Text('MyShop'),
         actions: [
           PopupMenuButton(
+            icon: const Icon(Icons.more_vert),
             onSelected: (FilterOption selectedValue) {
               setState(() {
                 if (selectedValue == FilterOption.favorites) {
@@ -69,9 +99,11 @@ class _ProductOverViewScreenState extends State<ProductOverViewScreen> {
         ],
       ),
       drawer: const DrawerWidget(),
-      body: ProductGrid(
-        showFavOnly: _showFavOnly,
-      ),
+      body: _isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : ProductGrid(showFavOnly: _showFavOnly),
     );
   }
 }

@@ -3,15 +3,15 @@ import 'package:provider/provider.dart';
 import 'package:shop_app/providers/product_model.dart';
 import 'package:shop_app/providers/product_provider.dart';
 
-class EditProductScreen extends StatefulWidget {
-  const EditProductScreen({Key? key}) : super(key: key);
-  static const routeName = '/editProductScreen';
+class AddProductScreen extends StatefulWidget {
+  const AddProductScreen({Key? key}) : super(key: key);
+  static const routeName = '/addProductScreen';
 
   @override
-  State<EditProductScreen> createState() => _EditProductScreenState();
+  State<AddProductScreen> createState() => _AddProductScreenState();
 }
 
-class _EditProductScreenState extends State<EditProductScreen> {
+class _AddProductScreenState extends State<AddProductScreen> {
   // final _priceFocusNode = FocusNode();
   final _imgUrlFocusNode = FocusNode();
   final _imgUrlController = TextEditingController();
@@ -23,46 +23,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
     price: 0,
     imgUrl: '',
   );
-  // var _initValues = {
-  //   'title': '',
-  //   'description': '',
-  //   'price': '',
-  //   'imgUrl': '',
-  // };
-  var _isInit = true;
+
   var _isLoading = false;
 
   @override
   void initState() {
     _imgUrlFocusNode.addListener(_updateImageUrl);
     super.initState();
-  }
-
-  @override
-  void didChangeDependencies() {
-    if (_isInit) {
-      final String productId =
-          ModalRoute.of(context)!.settings.arguments.toString();
-      // final prodData = Provider.of<ProductProvider>(context).findById(productId);
-      // _editProduct = prodData;
-      // if (productId == null) {
-      //   return print(productId);
-      // }
-      // print(productId);
-      _editProduct = Provider.of<ProductProvider>(context, listen: false)
-          .findById(productId);
-      // _initValues = {
-      //   'title': _editProduct.title,
-      //   'description': _editProduct.description,
-      //   'price': _editProduct.price.toString(),
-      //   // 'imgUrl': _editProduct.imgUrl,
-      //   'imgUrl': '',
-      // };
-
-      _imgUrlController.text = _editProduct.imgUrl;
-    }
-    _isInit = false;
-    super.didChangeDependencies();
   }
 
   void _updateImageUrl() {
@@ -78,17 +45,6 @@ class _EditProductScreenState extends State<EditProductScreen> {
     }
   }
 
-  // void _saveForm() async {
-  //   final isValid = _formKey.currentState!.validate();
-  //   if (!isValid) {
-  //     return;
-  //   }
-  //   _formKey.currentState!.save();
-  //   await Provider.of<ProductProvider>(context, listen: false)
-  //       .updateProduct(_editProduct.id, _editProduct);
-
-  //   Navigator.of(context).pop();
-  // }
   void _saveForm() async {
     final isValid = _formKey.currentState!.validate();
     if (!isValid) {
@@ -98,38 +54,33 @@ class _EditProductScreenState extends State<EditProductScreen> {
     setState(() {
       _isLoading = true;
     });
-    await Provider.of<ProductProvider>(context, listen: false)
-        .updateProduct(_editProduct.id, _editProduct)
-        .then((_) {
-      Navigator.of(context).pop();
+    try {
+      await Provider.of<ProductProvider>(context, listen: false)
+          .addProduct(_editProduct);
+    } catch (error) {
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Error Accured'),
+          content: const Text('Some thing went wrong'),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(ctx).pop();
+              },
+              child: const Text('Okay'),
+            ),
+          ],
+        ),
+      );
+    } finally {
       setState(() {
         _isLoading = false;
+
+        print('======> isLoading = False');
       });
-    });
-
-    // await showDialog<void>(
-    //   context: context,
-    //   builder: (ctx) => AlertDialog(
-    //     title: const Text('Error Accured'),
-    //     content: const Text('Some thing went wrong'),
-    //     actions: [
-    //       ElevatedButton(
-    //         onPressed: () {
-    //           Navigator.of(ctx).pop();
-    //         },
-    //         child: const Text('Okay'),
-    //       ),
-    //     ],
-    //   ),
-    // );
-    // } finally {
-    //   setState(() {
-    //     _isLoading = false;
-
-    //     print('======> isLoading = False');
-    //   });
-    //   Navigator.pop(context);
-    // }
+      Navigator.pop(context);
+    }
   }
 
   @override
@@ -165,7 +116,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 child: ListView(
                   children: [
                     TextFormField(
-                      initialValue: _editProduct.title,
+                      // initialValue: _initValues['title'],
                       decoration: const InputDecoration(
                         labelText: 'Title',
                       ),
@@ -191,7 +142,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                       },
                     ),
                     TextFormField(
-                      initialValue: _editProduct.price.toString(),
+                      // initialValue: _initValues['price'],
 
                       decoration: const InputDecoration(
                         labelText: 'Price',
@@ -223,7 +174,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                       },
                     ),
                     TextFormField(
-                      initialValue: _editProduct.description,
+                      // initialValue: _initValues['description'],
                       maxLines: 3,
                       decoration: const InputDecoration(
                         labelText: 'Discription',

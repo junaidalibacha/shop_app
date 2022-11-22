@@ -38,22 +38,7 @@ class CartScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Provider.of<OrderProvider>(context, listen: false)
-                          .addOrder(
-                        cartData.items.values.toList(),
-                        cartData.totalAmount,
-                      );
-                      cartData.clear();
-                    },
-                    child: Text(
-                      'Order Now',
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                  ),
+                  OrderNowButton(cartData: cartData),
                 ],
               ),
             ),
@@ -72,6 +57,52 @@ class CartScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class OrderNowButton extends StatefulWidget {
+  const OrderNowButton({
+    Key? key,
+    required this.cartData,
+  }) : super(key: key);
+
+  final CartProvider cartData;
+
+  @override
+  State<OrderNowButton> createState() => _OrderNowButtonState();
+}
+
+class _OrderNowButtonState extends State<OrderNowButton> {
+  bool _isLoading = false;
+  @override
+  Widget build(BuildContext context) {
+    return TextButton(
+      onPressed: (widget.cartData.totalAmount <= 0 || _isLoading)
+          ? null
+          : () async {
+              setState(() {
+                _isLoading = true;
+              });
+              await Provider.of<OrderProvider>(context, listen: false).addOrder(
+                widget.cartData.items.values.toList(),
+                widget.cartData.totalAmount,
+              );
+              setState(() {
+                _isLoading = false;
+              });
+              widget.cartData.clear();
+            },
+      child: _isLoading
+          ? const CircularProgressIndicator()
+          : Text(
+              'Order Now',
+              style: TextStyle(
+                color: widget.cartData.totalAmount <= 0
+                    ? Colors.grey
+                    : Theme.of(context).colorScheme.primary,
+              ),
+            ),
     );
   }
 }
